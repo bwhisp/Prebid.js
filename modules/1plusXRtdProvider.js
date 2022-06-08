@@ -1,5 +1,5 @@
 // Constants 
-const MODULE_NAME = ''
+const MODULE_NAME = '1plusX'
 
 // Functions
 
