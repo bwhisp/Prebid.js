@@ -6,7 +6,10 @@ const MODULE_NAME = '1plusX'
 // Functions
 
 // Functions exported in submodule object
-const init = (config, userConsent) => { }
+const init = (config, userConsent) => {
+  // We prolly get the config again in getBidRequestData 
+  return true;
+}
 
 const getBidRequestData = (reqBidsConfigObj, callback, config, userConsent) => { }
 
