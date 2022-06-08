@@ -4,6 +4,15 @@ const REAL_TIME_MODULE = 'realTimeData'
 const MODULE_NAME = '1plusX'
 
 // Functions
+const getBidRequestDataAsync = async (reqBidsConfigObj, config, userConsent) => {
+  // Maybe treat the case where we already have the audiences & segments in local storage
+  // Get the required config
+  // Call PAPI
+  // -- Then :
+  // ---- extract relevant data
+  // ---- set the data to the bid
+  // -- Catch : print err & do nothing 
+}
 
 // Functions exported in submodule object
 const init = (config, userConsent) => {
@@ -11,7 +20,14 @@ const init = (config, userConsent) => {
   return true;
 }
 
-const getBidRequestData = (reqBidsConfigObj, callback, config, userConsent) => { }
+const getBidRequestData = (reqBidsConfigObj, callback, config, userConsent) => {
+  getBidRequestDataAsync(reqBidsConfigObj, config, userConsent)
+    .then(() => callback())
+    .catch((err) => {
+      console.error(err);
+      callback();
+    })
+}
 
 // The RTD submodule object to be exported
 export const onePlusXSubmodule = {
