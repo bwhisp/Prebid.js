@@ -1,4 +1,6 @@
-// Constants 
+import { submodule } from "../src/hook"
+// Constants
+const REAL_TIME_MODULE = 'realTimeData'
 const MODULE_NAME = '1plusX'
 
 // Functions
@@ -14,3 +16,6 @@ export const onePlusXSubmodule = {
   init,
   getBidRequestData
 }
+
+// Register the onePlusXSubmodule as submodule of realTimeData
+submodule(REAL_TIME_MODULE, MODULE_NAME);
