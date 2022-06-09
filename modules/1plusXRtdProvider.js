@@ -2,8 +2,9 @@ import { submodule } from '../src/hook.js'
 import { logMessage, deepAccess, isNumber } from '../src/utils.js';
 
 // Constants
-const REAL_TIME_MODULE = 'realTimeData'
-const MODULE_NAME = '1plusX'
+const REAL_TIME_MODULE = 'realTimeData';
+const MODULE_NAME = '1plusX';
+const PAPI_VERSION = 'v1.0';
 
 // Functions
 const extractConfig = (config) => {
@@ -19,9 +20,18 @@ const extractConfig = (config) => {
   return { customerId, timeout };
 }
 
+const getPapiUrl = ({ customerId }) => {
+  // https://[yourClientId].profiles.tagger.opecloud.com/[VERSION]/targeting?url=
+  const currentUrl = encodeURIComponent(window.location.href);
+  const papiUrl = `https://${customerId}.profiles.tagger.opecloud.com/${PAPI_VERSION}/targeting?url=${currentUrl}`;
+  return papiUrl;
+}
+
 const getBidRequestDataAsync = (reqBidsConfigObj, config, userConsent) => {
   // Get the required config
   const { customerId, timeout } = extractConfig(config);
+  // Get PAPI URL
+  const papiUrl = getPapiUrl({ customerId })
   // Call PAPI
   // -- Then :
   // ---- extract relevant data
