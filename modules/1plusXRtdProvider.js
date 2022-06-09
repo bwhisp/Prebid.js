@@ -1,15 +1,27 @@
 import { submodule } from '../src/hook.js'
-import { logMessage } from '../src/utils.js';
+import { logMessage, deepAccess, isNumber } from '../src/utils.js';
 
 // Constants
 const REAL_TIME_MODULE = 'realTimeData'
 const MODULE_NAME = '1plusX'
 
 // Functions
+const extractConfig = (config) => {
+  // CustomerId 
+  const customerId = config;
+  if (!customerId) {
+    throw new Error('REQUIRED CUSTOMER ID');
+  }
+  // Timeout
+  const tempTimeout = deepAccess(config, 'params.timeout');
+  const timeout = isNumber(tempTimeout) && tempTimeout > 300 ? timeout : 1000;
+
+  return { customerId, timeout };
+}
+
 const getBidRequestDataAsync = (reqBidsConfigObj, config, userConsent) => {
-  // We don't
-  // Maybe treat the case where we already have the audiences & segments in local storage
   // Get the required config
+  const { customerId, timeout } = extractConfig(config);
   // Call PAPI
   // -- Then :
   // ---- extract relevant data
