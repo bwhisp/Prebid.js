@@ -1,5 +1,8 @@
 import { submodule } from '../src/hook.js'
-import { logMessage, deepAccess, isNumber } from '../src/utils.js';
+import { ajax } from '../src/ajax.js'
+import { logMessage, logError, deepAccess, isNumber } from '../src/utils.js';
+import { resolve } from 'core-js/fn/promise';
+import { reject } from 'lodash';
 
 // Constants
 const REAL_TIME_MODULE = 'realTimeData';
@@ -27,16 +30,17 @@ const getPapiUrl = ({ customerId }) => {
   return papiUrl;
 }
 
-const getBidRequestDataAsync = (reqBidsConfigObj, config, userConsent) => {
-  // Get the required config
-  const { customerId, timeout } = extractConfig(config);
-  // Get PAPI URL
-  const papiUrl = getPapiUrl({ customerId })
-  // Call PAPI
-  // -- Then :
-  // ---- extract relevant data
-  // ---- set the data to the bid
-  // -- Catch : print err & do nothing
+getTargetingDataFromPapi = (papiUrl) => {
+  return new Promise(
+    ajax(papiUrl, {
+      success(responseText, response) {
+        resolve(response);
+      },
+      error(errorText, error) {
+        reject(error);
+      }
+    })
+  )
 }
 
 // Functions exported in submodule object
@@ -46,10 +50,21 @@ const init = (config, userConsent) => {
 }
 
 const getBidRequestData = (reqBidsConfigObj, callback, config, userConsent) => {
-  getBidRequestDataAsync(reqBidsConfigObj, config, userConsent)
-    .then(() => callback())
-    .catch((err) => {
-      logMessage(err);
+  // Get the required config
+  const { customerId, timeout } = extractConfig(config);
+  // Get PAPI URL
+  const papiUrl = getPapiUrl({ customerId })
+  // Call PAPI
+  getTargetingDataFromPapi(papiUrl)
+    .then((response) => {
+      // -- Then :
+      // ---- extract relevant data
+      // ---- set the data to the bid
+      callback();
+    })
+    .catch((error) => {
+      // -- Catch : print err & do nothing
+      logError(error);
       callback();
     })
 }
