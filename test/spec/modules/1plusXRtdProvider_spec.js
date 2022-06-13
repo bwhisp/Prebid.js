@@ -6,6 +6,14 @@ import { onePlusXSubmodule } from 'modules/1plusXRtdProvider';
 describe('1plusXRtdProvider', () => {
   const reqBidsConfigObj = {};
   let fakeServer;
+  const fakeResponseHeaders = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+  };
+  const fakeResponse = {
+    s: ['segment1', 'segment2', 'segment3'],
+    t: ['targeting1', 'targeting2', 'targeting3']
+  };
 
   before(() => {
     config.resetConfig();
@@ -15,7 +23,7 @@ describe('1plusXRtdProvider', () => {
 
   beforeEach(() => {
     fakeServer = sinon.createFakeServer();
-    fakeServer.respondWith('GET', '*', [200, {}, '']);
+    fakeServer.respondWith('GET', '*', [200, fakeResponseHeaders, JSON.stringify(fakeResponse)]);
     fakeServer.respondImmediately = true;
     fakeServer.autoRespond = true;
   })
