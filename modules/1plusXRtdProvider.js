@@ -1,6 +1,11 @@
-import { submodule } from '../src/hook.js'
-import { ajax } from '../src/ajax.js'
-import { logMessage, logError, deepAccess, isNumber } from '../src/utils.js';
+import { submodule } from '../src/hook.js';
+import { config } from '../src/config.js';
+import { ajax } from '../src/ajax.js';
+import {
+  logMessage, logError,
+  deepAccess, mergeDeep,
+  isNumber, isArray
+} from '../src/utils.js';
 
 // Constants
 const REAL_TIME_MODULE = 'realTimeData';
@@ -8,17 +13,25 @@ const MODULE_NAME = '1plusX';
 const PAPI_VERSION = 'v1.0';
 
 // Functions
-const extractConfig = (config) => {
+const extractConfig = (moduleConfig, reqBidsConfigObj) => {
   // CustomerId
-  const customerId = deepAccess(config, 'params.customerId');
+  const customerId = deepAccess(moduleConfig, 'params.customerId');
   if (!customerId) {
     throw new Error('REQUIRED CUSTOMER ID');
   }
   // Timeout
-  const tempTimeout = deepAccess(config, 'params.timeout');
+  const tempTimeout = deepAccess(moduleConfig, 'params.timeout');
   const timeout = isNumber(tempTimeout) && tempTimeout > 300 ? tempTimeout : 1000;
+  // Bidders 
+  const adUnitBidders = reqBidsConfigObj.adUnits
+    .flatMap(({ bids }) => bids.map(({ bidder }) => bidder))
+    .filter((e, i, a) => a.indexOf(e) === i);
+  const biddersTemp = deepAccess(moduleConfig, 'params.bidders');
+  const bidders = isArray(biddersTemp) ?
+    biddersTemp.filter(bidder => adUnitBidders.includes(bidder)) :
+    [];
 
-  return { customerId, timeout };
+  return { customerId, timeout, bidders };
 }
 
 const getPapiUrl = ({ customerId }) => {
@@ -51,16 +64,42 @@ const getTargetingDataFromPapi = (papiUrl) => {
   })
 }
 
+const buildOrtb2Object = ({ segments, topics }) => {
+  const site = { data: segments };
+  const user = { data: topics };
+  return { site, user };
+}
+
+const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
+  const bidderConfig = bidderConfigs[bidder] || {};
+  const configForBidder = mergeDeep({}, bidderConfig, { ortb2 });
+
+  config.setBidderConfig({
+    bidder: [bidder],
+    config: configForBidder
+  });
+};
+
+const setTargetingDataToConfig = (papiResponse, { bidders }) => {
+  const bidderConfigs = config.getBidderConfig();
+  const { s: segments, t: topics } = papiResponse;
+  const ortb2 = buildOrtb2Object({ segments, topics });
+
+  for (const bidder of bidders) {
+    setBidderConfig(bidder, ortb2, bidderConfigs);
+  }
+}
+
 // Functions exported in submodule object
 const init = (config, userConsent) => {
   // We prolly get the config again in getBidRequestData
   return true;
 }
 
-const getBidRequestData = (reqBidsConfigObj, callback, config, userConsent) => {
+const getBidRequestData = (reqBidsConfigObj, callback, moduleConfig, userConsent) => {
   try {
     // Get the required config
-    const { customerId } = extractConfig(config);
+    const { customerId, bidders } = extractConfig(moduleConfig, reqBidsConfigObj);
     // Get PAPI URL
     const papiUrl = getPapiUrl({ customerId })
     // Call PAPI
@@ -70,7 +109,7 @@ const getBidRequestData = (reqBidsConfigObj, callback, config, userConsent) => {
         // ---- extract relevant data
         // ---- set the data to the bid
         logMessage('REQUEST TO PAPI SUCCESS');
-        const { s: segments, t: targeting } = response;
+        setTargetingDataToConfig(papiResponse, { bidders });
         callback();
       })
       .catch((error) => {
