@@ -86,4 +86,4 @@ export const onePlusXSubmodule = {
 }
 
 // Register the onePlusXSubmodule as submodule of realTimeData
-submodule(REAL_TIME_MODULE, MODULE_NAME);
+submodule(REAL_TIME_MODULE, onePlusXSubmodule);
