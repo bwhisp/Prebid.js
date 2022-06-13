@@ -70,6 +70,7 @@ const getBidRequestData = (reqBidsConfigObj, callback, config, userConsent) => {
         // ---- extract relevant data
         // ---- set the data to the bid
         logMessage('REQUEST TO PAPI SUCCESS');
+        const { s: segments, t: targeting } = response;
         callback();
       })
       .catch((error) => {
