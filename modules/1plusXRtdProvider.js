@@ -65,8 +65,18 @@ const getTargetingDataFromPapi = (papiUrl) => {
 }
 
 const buildOrtb2Object = ({ segments, topics }) => {
-  const site = { data: segments };
-  const user = { data: topics };
+  const site = {
+    keywords: {
+      opeaud: segments,
+      opectx: topics
+    },
+  };
+  const user = {
+    keywords: {
+      opeaud: segments,
+      opectx: topics
+    },
+  };
   return { site, user };
 }
 
