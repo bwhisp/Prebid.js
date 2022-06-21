@@ -135,7 +135,6 @@ describe('1plusXRtdProvider', () => {
     })
   })
 
-
   describe('setBidderConfig', () => {
     const ortb2Object = {
       site: {
@@ -154,12 +153,12 @@ describe('1plusXRtdProvider', () => {
 
     it("doesn't write in config of unsupported bidder", () => {
       const unsupportedBidder = Math.random().toString(36).replace(/[^a-z]+/g, '').substring(0, 5);
-      // Set initial config for this bidder 
+      // Set initial config for this bidder
       config.setBidderConfig({
         bidders: [unsupportedBidder],
         config: bidderConfigInitial
       })
-      // Call my own setBidderConfig with targeting data 
+      // Call my own setBidderConfig with targeting data
       setBidderConfig(unsupportedBidder, ortb2Object, config.getBidderConfig());
       // Check that the config has not been changed for unsupported bidder
       const newConfig = config.getBidderConfig()[unsupportedBidder];
@@ -181,7 +180,7 @@ describe('1plusXRtdProvider', () => {
       const newConfig = config.getBidderConfig()[bidder];
       expect(newConfig.ortb2.site).to.deep.include(ortb2Object.site);
       expect(newConfig.ortb2.user).to.deep.include(ortb2Object.user);
-      // Check that existing config didn't get erased 
+      // Check that existing config didn't get erased
       expect(newConfig.ortb2.site).to.deep.include(bidderConfigInitial.ortb2.site);
       expect(newConfig.ortb2.user).to.deep.include(bidderConfigInitial.ortb2.user);
     })
@@ -205,7 +204,7 @@ describe('1plusXRtdProvider', () => {
 
     it("doesn't set config for unsupported bidders", () => {
       const unsupportedBidder = Math.random().toString(36).replace(/[^a-z]+/g, '').substring(0, 5);
-      // setting initial config for this bidder 
+      // setting initial config for this bidder
       config.setBidderConfig({
         bidders: [unsupportedBidder],
         config: bidderConfigInitial
@@ -221,7 +220,7 @@ describe('1plusXRtdProvider', () => {
 
     it('sets the config for the selected bidders', () => {
       const bidders = ['appnexus', 'rubicon'];
-      // setting initial config for those bidders 
+      // setting initial config for those bidders
       config.setBidderConfig({
         bidders,
         config: bidderConfigInitial
@@ -234,16 +233,15 @@ describe('1plusXRtdProvider', () => {
         const newConfig = config.getBidderConfig()[bidder];
         expect(newConfig.ortb2.site).to.deep.include(expectedOrtb2.site);
         expect(newConfig.ortb2.user).to.deep.include(expectedOrtb2.user);
-        // Check that existing config didn't get erased 
+        // Check that existing config didn't get erased
         expect(newConfig.ortb2.site).to.deep.include(bidderConfigInitial.ortb2.site);
         expect(newConfig.ortb2.user).to.deep.include(bidderConfigInitial.ortb2.user);
       }
-
     })
     it('ignores unsupported bidders', () => {
       const unsupportedBidder = Math.random().toString(36).replace(/[^a-z]+/g, '').substring(0, 5);
       const bidders = ['appnexus', unsupportedBidder];
-      // setting initial config for those bidders 
+      // setting initial config for those bidders
       config.setBidderConfig({
         bidders,
         config: bidderConfigInitial
@@ -255,11 +253,11 @@ describe('1plusXRtdProvider', () => {
       const appnexusConfig = config.getBidderConfig()['appnexus'];
       expect(appnexusConfig.ortb2.site).to.deep.include(expectedOrtb2.site);
       expect(appnexusConfig.ortb2.user).to.deep.include(expectedOrtb2.user);
-      // Check that existing config didn't get erased 
+      // Check that existing config didn't get erased
       expect(appnexusConfig.ortb2.site).to.deep.include(bidderConfigInitial.ortb2.site);
       expect(appnexusConfig.ortb2.user).to.deep.include(bidderConfigInitial.ortb2.user);
 
-      // Check that config for unsupported bidder remained unchanged 
+      // Check that config for unsupported bidder remained unchanged
       const newConfig = config.getBidderConfig()[unsupportedBidder];
       expect(newConfig.ortb2.user).to.not.have.any.keys('keywords')
       expect(newConfig.ortb2.site).to.not.have.any.keys('keywords')
