@@ -64,7 +64,7 @@ const getTargetingDataFromPapi = (papiUrl) => {
   })
 }
 
-const buildOrtb2Object = ({ segments, topics }) => {
+export const buildOrtb2Object = ({ segments = [], topics = [] }) => {
   const site = {
     keywords: {
       opeaud: segments,
@@ -80,7 +80,7 @@ const buildOrtb2Object = ({ segments, topics }) => {
   return { site, user };
 }
 
-const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
+export const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
   const bidderConfig = bidderConfigs[bidder] || {};
   const configForBidder = mergeDeep({}, bidderConfig, { ortb2 });
 
@@ -90,7 +90,7 @@ const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
   });
 };
 
-const setTargetingDataToConfig = (papiResponse, { bidders }) => {
+export const setTargetingDataToConfig = (papiResponse, { bidders }) => {
   const bidderConfigs = config.getBidderConfig();
   const { s: segments, t: topics } = papiResponse;
   const ortb2 = buildOrtb2Object({ segments, topics });
@@ -114,10 +114,7 @@ const getBidRequestData = (reqBidsConfigObj, callback, moduleConfig, userConsent
     const papiUrl = getPapiUrl({ customerId })
     // Call PAPI
     getTargetingDataFromPapi(papiUrl)
-      .then((response) => {
-        // -- Then :
-        // ---- extract relevant data
-        // ---- set the data to the bid
+      .then((papiResponse) => {
         logMessage('REQUEST TO PAPI SUCCESS');
         setTargetingDataToConfig(papiResponse, { bidders });
         callback();

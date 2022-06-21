@@ -1,7 +1,12 @@
 import { config } from 'src/config';
 import { logMessage } from 'src/utils';
 import { server } from 'test/mocks/xhr.js';
-import { onePlusXSubmodule } from 'modules/1plusXRtdProvider';
+import {
+  onePlusXSubmodule,
+  buildOrtb2Object,
+  setBidderConfig,
+  setTargetingDataToConfig
+} from 'modules/1plusXRtdProvider';
 
 describe('1plusXRtdProvider', () => {
   const reqBidsConfigObj = {};
@@ -55,4 +60,73 @@ describe('1plusXRtdProvider', () => {
       }
     })
   })
+
+  describe('buildOrtb2Object', () => {
+    it('fills site.keywords & user.keywords in the ortb2 config', () => {
+      const rtdData = { segments: fakeResponse.s, topics: fakeResponse.t };
+      const ortb2Object = buildOrtb2Object(rtdData);
+
+      const expectedOutput = {
+        site: {
+          keywords: {
+            opeaud: rtdData.segments,
+            opectx: rtdData.topics,
+          }
+        },
+        user: {
+          keywords: {
+            opeaud: rtdData.segments,
+            opectx: rtdData.topics,
+          }
+        }
+      }
+      expect([ortb2Object]).to.deep.include.members([expectedOutput]);
+    });
+
+    it('defaults to empty array if no segment is given', () => {
+      const rtdData = { topics: fakeResponse.t };
+      const ortb2Object = buildOrtb2Object(rtdData);
+
+      const expectedOutput = {
+        site: {
+          keywords: {
+            opeaud: [],
+            opectx: rtdData.topics
+          }
+        },
+        user: {
+          keywords: {
+            opeaud: [],
+            opectx: rtdData.topics
+          }
+        }
+      }
+
+      expect(ortb2Object).to.deep.include(expectedOutput);
+    })
+
+    it('defaults to empty array if no topic is given', () => {
+      const rtdData = { segments: fakeResponse.s };
+      const ortb2Object = buildOrtb2Object(rtdData);
+
+      const expectedOutput = {
+        site: {
+          keywords: {
+            opeaud: rtdData.segments,
+            opectx: []
+          }
+        },
+        user: {
+          keywords: {
+            opeaud: rtdData.segments,
+            opectx: []
+          }
+        }
+      }
+
+      expect(ortb2Object).to.deep.include(expectedOutput);
+    })
+  })
+
+
 })
