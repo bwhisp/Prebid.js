@@ -11,6 +11,7 @@ import {
 const REAL_TIME_MODULE = 'realTimeData';
 const MODULE_NAME = '1plusX';
 const PAPI_VERSION = 'v1.0';
+const SUPPORTED_BIDDERS = ['appnexus', 'rubicon']
 
 // Functions
 const extractConfig = (moduleConfig, reqBidsConfigObj) => {
@@ -22,14 +23,27 @@ const extractConfig = (moduleConfig, reqBidsConfigObj) => {
   // Timeout
   const tempTimeout = deepAccess(moduleConfig, 'params.timeout');
   const timeout = isNumber(tempTimeout) && tempTimeout > 300 ? tempTimeout : 1000;
+
   // Bidders 
+  const biddersTemp = deepAccess(moduleConfig, 'params.bidders');
+  if (!isArray(biddersTemp) || !biddersTemp.length) {
+    throw new Error('REQUIRED BIDDERS IN SUBMODULE CONFIG');
+  }
+
   const adUnitBidders = reqBidsConfigObj.adUnits
     .flatMap(({ bids }) => bids.map(({ bidder }) => bidder))
     .filter((e, i, a) => a.indexOf(e) === i);
-  const biddersTemp = deepAccess(moduleConfig, 'params.bidders');
-  const bidders = isArray(biddersTemp) ?
-    biddersTemp.filter(bidder => adUnitBidders.includes(bidder)) :
-    [];
+  if (!isArray(adUnitBidders) || !adUnitBidders.length) {
+    throw new Error('REQUIRED BIDDERS IN BID REQUEST CONFIG');
+  }
+
+  const bidders = biddersTemp.filter(
+    bidder =>
+      SUPPORTED_BIDDERS.includes(bidder) && adUnitBidders.includes(bidder)
+  );
+  if (!bidders.length) {
+    throw new Error('NO SUPPORTED BIDDER FOUND IN SUBMODULE/ BID REQUEST CONFIG');
+  }
 
   return { customerId, timeout, bidders };
 }
