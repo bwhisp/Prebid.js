@@ -95,11 +95,14 @@ export const buildOrtb2Object = ({ segments = [], topics = [] }) => {
 }
 
 export const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
+  if (!SUPPORTED_BIDDERS.includes(bidder)) {
+    return;
+  }
   const bidderConfig = bidderConfigs[bidder] || {};
   const configForBidder = mergeDeep({}, bidderConfig, { ortb2 });
 
   config.setBidderConfig({
-    bidder: [bidder],
+    bidders: [bidder],
     config: configForBidder
   });
 };

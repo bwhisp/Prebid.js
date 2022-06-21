@@ -129,4 +129,62 @@ describe('1plusXRtdProvider', () => {
   })
 
 
+  describe('setBidderConfig', () => {
+    const ortb2Object = {
+      site: {
+        keywords: {
+          opeaud: fakeResponse.s,
+          opectx: fakeResponse.t,
+        }
+      },
+      user: {
+        keywords: {
+          opeaud: fakeResponse.s,
+          opectx: fakeResponse.t,
+        }
+      }
+    }
+
+    const bidderConfigInitial = {
+      ortb2: {
+        user: { data: [] },
+        site: { content: { data: [] } }
+      }
+    }
+
+    it("doesn't write in config of unsupported bidder", () => {
+      const unsupportedBidder = Math.random().toString(36).replace(/[^a-z]+/g, '').substring(0, 5);
+      // Set initial config for this bidder 
+      config.setBidderConfig({
+        bidders: [unsupportedBidder],
+        config: bidderConfigInitial
+      })
+      // Call my own setBidderConfig with targeting data 
+      setBidderConfig(unsupportedBidder, ortb2Object, config.getBidderConfig());
+      // Check that the config has not been changed for unsupported bidder
+      const newConfig = config.getBidderConfig()[unsupportedBidder];
+      expect(newConfig.ortb2.user).to.not.have.any.keys('keywords')
+      expect(newConfig.ortb2.site).to.not.have.any.keys('keywords')
+      expect(newConfig).to.deep.include(bidderConfigInitial);
+    })
+
+    it('merges config for supported bidders', () => {
+      const bidder = 'appnexus';
+      // Set initial config
+      config.setBidderConfig({
+        bidders: [bidder],
+        config: bidderConfigInitial
+      });
+      // Call submodule's setBidderConfig
+      setBidderConfig(bidder, ortb2Object, config.getBidderConfig());
+      // Check that the targeting data has been set in the config
+      const newConfig = config.getBidderConfig()[bidder];
+      expect(newConfig.ortb2.site).to.deep.include(ortb2Object.site);
+      expect(newConfig.ortb2.user).to.deep.include(ortb2Object.user);
+      // Check that existing config didn't get erased 
+      expect(newConfig.ortb2.site).to.deep.include(bidderConfigInitial.ortb2.site);
+      expect(newConfig.ortb2.user).to.deep.include(bidderConfigInitial.ortb2.user);
+    })
+  })
+
 })
