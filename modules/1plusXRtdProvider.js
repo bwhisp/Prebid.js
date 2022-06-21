@@ -14,6 +14,12 @@ const PAPI_VERSION = 'v1.0';
 const SUPPORTED_BIDDERS = ['appnexus', 'rubicon']
 
 // Functions
+/**
+ * Extracts the parameters for 1plusX RTD module from the config object passed at instanciation
+ * @param {Object} moduleConfig Config object passed to the module
+ * @param {Object} reqBidsConfigObj Config object for the bidders; each adapter has its own entry
+ * @returns 
+ */
 const extractConfig = (moduleConfig, reqBidsConfigObj) => {
   // CustomerId
   const customerId = deepAccess(moduleConfig, 'params.customerId');
@@ -48,6 +54,11 @@ const extractConfig = (moduleConfig, reqBidsConfigObj) => {
   return { customerId, timeout, bidders };
 }
 
+/**
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
 const getPapiUrl = ({ customerId }) => {
   logMessage('GET PAPI URL');
   // https://[yourClientId].profiles.tagger.opecloud.com/[VERSION]/targeting?url=
@@ -56,6 +67,11 @@ const getPapiUrl = ({ customerId }) => {
   return papiUrl;
 }
 
+/**
+ * 
+ * @param {string} papiUrl URL of profile API 
+ * @returns 
+ */
 const getTargetingDataFromPapi = (papiUrl) => {
   return new Promise((resolve, reject) => {
     const requestOptions = {
@@ -78,6 +94,11 @@ const getTargetingDataFromPapi = (papiUrl) => {
   })
 }
 
+/**
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
 export const buildOrtb2Object = ({ segments = [], topics = [] }) => {
   const site = {
     keywords: {
@@ -94,6 +115,13 @@ export const buildOrtb2Object = ({ segments = [], topics = [] }) => {
   return { site, user };
 }
 
+/**
+ * Merges the targeting data with the existing config for bidder and updates
+ * @param {string} bidder Bidder for which to set config
+ * @param {Object} ortb2 
+ * @param {Object} bidderConfigs 
+ * @returns 
+ */
 export const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
   if (!SUPPORTED_BIDDERS.includes(bidder)) {
     return;
@@ -107,6 +135,11 @@ export const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
   });
 };
 
+/**
+ * Updates bidder configs with the targeting data retreived from Profile API
+ * @param {*} papiResponse 
+ * @param {*} param1 
+ */
 export const setTargetingDataToConfig = (papiResponse, { bidders }) => {
   const bidderConfigs = config.getBidderConfig();
   const { s: segments, t: topics } = papiResponse;
@@ -118,11 +151,24 @@ export const setTargetingDataToConfig = (papiResponse, { bidders }) => {
 }
 
 // Functions exported in submodule object
+/**
+ * Init
+ * @param {*} config 
+ * @param {*} userConsent 
+ * @returns 
+ */
 const init = (config, userConsent) => {
   // We prolly get the config again in getBidRequestData
   return true;
 }
 
+/**
+ * 
+ * @param {*} reqBidsConfigObj 
+ * @param {*} callback 
+ * @param {*} moduleConfig 
+ * @param {*} userConsent 
+ */
 const getBidRequestData = (reqBidsConfigObj, callback, moduleConfig, userConsent) => {
   try {
     // Get the required config
