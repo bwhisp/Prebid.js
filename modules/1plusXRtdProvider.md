@@ -23,6 +23,10 @@ gulp build --modules="rtdModule,1plusXRtdProvider,appnexusBidAdapter,..."
 
 ### Configuration
 
+Use `setConfig` to instruct Prebid.js to initilize the 1plusX RTD module, as specified below. 
+
+This module is configured as part of the `realTimeData.dataProviders`
+
 ```javascript
 var TIMEOUT = 1000;
 pbjs.setConfig({
