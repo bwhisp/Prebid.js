@@ -119,7 +119,7 @@ export const buildOrtb2Updates = ({ segments = [], topics = [] }) => {
  */
 export const updateBidderConfig = (bidder, ortb2Updates, bidderConfigs) => {
   if (!SUPPORTED_BIDDERS.includes(bidder)) {
-    return;
+    return null;
   }
   const { site, userData } = ortb2Updates;
   const bidderConfigCopy = mergeDeep({}, bidderConfigs[bidder]);
@@ -127,7 +127,7 @@ export const updateBidderConfig = (bidder, ortb2Updates, bidderConfigs) => {
   const currentSite = deepAccess(bidderConfigCopy, 'ortb2.site')
   const updatedSite = mergeDeep(currentSite, site);
 
-  const currentUserData = deepAccess(bidderConfigCopy, 'ortb2.user.data');
+  const currentUserData = deepAccess(bidderConfigCopy, 'ortb2.user.data') || [];
   const updatedUserData = [
     ...currentUserData.filter(({ name }) => name != userData.name),
     userData
@@ -151,7 +151,7 @@ export const setTargetingDataToConfig = (papiResponse, { bidders }) => {
 
   for (const bidder of bidders) {
     const updatedBidderConfig = updateBidderConfig(bidder, ortb2Updates, bidderConfigs);
-    if (updatesBidderConfig) {
+    if (updatedBidderConfig) {
       config.setBidderConfig({
         bidders: [bidder],
         config: updatedBidderConfig
