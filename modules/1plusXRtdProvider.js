@@ -4,7 +4,7 @@ import { ajax } from '../src/ajax.js';
 import {
   logMessage, logError,
   deepAccess, mergeDeep,
-  isNumber, isArray
+  isNumber, isArray, deepSetValue
 } from '../src/utils.js';
 
 // Constants
@@ -55,7 +55,7 @@ const extractConfig = (moduleConfig, reqBidsConfigObj) => {
 }
 
 /**
- *
+ * Gets the URL of Profile Api from which targeting data will be fetched 
  * @param {*} param0
  * @returns
  */
@@ -68,7 +68,7 @@ const getPapiUrl = ({ customerId }) => {
 }
 
 /**
- *
+ * Fetches targeting data. It contains the audience segments & the contextual topics
  * @param {string} papiUrl URL of profile API
  * @returns
  */
@@ -95,24 +95,19 @@ const getTargetingDataFromPapi = (papiUrl) => {
 }
 
 /**
- *
+ * Prepares the update for the ORTB2 object
  * @param {*} param0
  * @returns
  */
-export const buildOrtb2Object = ({ segments = [], topics = [] }) => {
+export const buildOrtb2Updates = ({ segments = [], topics = [] }) => {
+  const userData = {
+    name: '1plusX.com',
+    segment: segments.map((segmentId) => ({ id: segmentId }))
+  };
   const site = {
-    keywords: {
-      opeaud: segments,
-      opectx: topics
-    },
+    keywords: topics.join(',')
   };
-  const user = {
-    keywords: {
-      opeaud: segments,
-      opectx: topics
-    },
-  };
-  return { site, user };
+  return { userData, site };
 }
 
 /**
@@ -122,17 +117,26 @@ export const buildOrtb2Object = ({ segments = [], topics = [] }) => {
  * @param {Object} bidderConfigs
  * @returns
  */
-export const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
+export const updateBidderConfig = (bidder, ortb2Updates, bidderConfigs) => {
   if (!SUPPORTED_BIDDERS.includes(bidder)) {
     return;
   }
-  const bidderConfig = bidderConfigs[bidder] || {};
-  const configForBidder = mergeDeep({}, bidderConfig, { ortb2 });
+  const { site, userData } = ortb2Updates;
+  const bidderConfigCopy = mergeDeep({}, bidderConfigs[bidder]);
 
-  config.setBidderConfig({
-    bidders: [bidder],
-    config: configForBidder
-  });
+  const currentSite = deepAccess(bidderConfigCopy, 'ortb2.site')
+  const updatedSite = mergeDeep(currentSite, site);
+
+  const currentUserData = deepAccess(bidderConfigCopy, 'ortb2.user.data');
+  const updatedUserData = [
+    ...currentUserData.filter(({ name }) => name != userData.name),
+    userData
+  ];
+
+  deepSetValue(bidderConfigCopy, 'ortb2.site', updatedSite);
+  deepSetValue(bidderConfigCopy, 'ortb2.user.data', updatedUserData);
+
+  return bidderConfigCopy
 };
 
 /**
@@ -143,10 +147,16 @@ export const setBidderConfig = (bidder, ortb2, bidderConfigs) => {
 export const setTargetingDataToConfig = (papiResponse, { bidders }) => {
   const bidderConfigs = config.getBidderConfig();
   const { s: segments, t: topics } = papiResponse;
-  const ortb2 = buildOrtb2Object({ segments, topics });
+  const ortb2Updates = buildOrtb2Updates({ segments, topics });
 
   for (const bidder of bidders) {
-    setBidderConfig(bidder, ortb2, bidderConfigs);
+    const updatedBidderConfig = updateBidderConfig(bidder, ortb2Updates, bidderConfigs);
+    if (updatesBidderConfig) {
+      config.setBidderConfig({
+        bidders: [bidder],
+        config: updatedBidderConfig
+      });
+    }
   }
 }
 
